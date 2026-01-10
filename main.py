@@ -17,11 +17,13 @@ class Ball(pygame.sprite.Sprite):
         self.velocity = velocity
         self.acceleration = acceleration
         self.radius = radius
-        self.diameter = self.radius * 2
-        self.image = pygame.Surface((self.diameter, self.diameter)).convert_alpha()
+        self.border_width = 2
+        self.total_radius = self.radius + self.border_width
+        self.diameter = self.total_radius * 2
+        self.image = pygame.Surface((self.diameter, self.diameter), pygame.SRCALPHA)
+        self.rect = self.image.get_rect(center=self.position)
         self.image.fill((0, 0, 0))
         self.image.set_colorkey((0, 0, 0))
-        self.rect = self.image.get_rect(center=self.position)
         self.gravity = Vector2(0, 0.1)
         self.color = color
 
@@ -40,6 +42,7 @@ class Ball(pygame.sprite.Sprite):
                     normal_part = self.velocity.project(normal)
                     self.velocity.reflect_ip(normal_part)
 
+    #TODO:Add a coeficient of restitution and friction
     def ball_collisions(self, b: object):
         dist_vec = self.position - b.position
         dist  = dist_vec.length()
@@ -55,7 +58,8 @@ class Ball(pygame.sprite.Sprite):
         self.velocity += self.acceleration
         self.position += self.velocity
         self.rect.center = self.position
-        pygame.draw.circle(self.image, self.color, (self.radius, self.radius), self.radius)
+        pygame.draw.circle(self.image, (10, 10, 10), (self.radius + self.border_width, self.radius + self.border_width), self.radius + self.border_width)
+        pygame.draw.circle(self.image, self.color, (self.radius + self.border_width, self.radius + self.border_width), self.radius)
 
 
 
@@ -94,6 +98,7 @@ def main():
                 pygame.draw.line(SCREEN, (255, 255, 255), wall[0], wall[1], 5)
                 ball.wall_collisions(Vector2(wall[0]), Vector2(wall[1]))
             for b in balls:
+                # A ball can't collide with itself
                 if ball == b:
                     pass
                 else:

@@ -24,7 +24,7 @@ class Ball(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.position)
         self.image.fill((0, 0, 0))
         self.image.set_colorkey((0, 0, 0))
-        self.gravity = Vector2(0, 0.1)
+        self.gravity = Vector2(0, 0)
         self.color = color
 
     def wall_collisions(self, wall_start_pos:Vector2, wall_end_pos:Vector2):
@@ -50,8 +50,17 @@ class Ball(pygame.sprite.Sprite):
         if dist <= radius_sum:
             penetration = radius_sum - dist
             normal = dist_vec.normalize()
-            self.position += normal * penetration
-            self.velocity.reflect_ip(normal)
+            self.position += normal * (penetration / 2)
+            b.position -= normal * (penetration / 2)
+            rel_vel = self.velocity - b.velocity
+            vn = rel_vel.dot(normal)
+
+            if vn > 0:
+                return
+
+            impulse = -vn * normal
+            self.velocity += impulse
+            b.velocity -= impulse
 
     def update(self):
         self.velocity += self.gravity
@@ -76,7 +85,7 @@ def main():
         (Vector2(0, 0), Vector2(WIDTH, 0)),
     ]
     for i in range(5):
-        for j in range(3):
+        for j in range(2):
             balls.add(
                 Ball(
                     Vector2(200 + i * 100, 100 + j * 100),
